@@ -1,19 +1,30 @@
 package teamworks;
 
-public class Main {
-    public static void main(String[] args) {
-        ProductRepository repo = new ProductRepository();
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import teamworks.ui.MainView;
 
-        repo.addProduct(new Product(1, "Dog Food", 10.5, 20));
-        repo.addProduct(new Product(2, "Cat Food", 8.0, 15));
+public class Main extends Application {
 
-        ShopService service = new ShopService(repo);
+    @Override
+    public void start(Stage stage) {
+        MainView mainView = new MainView();
 
-        System.out.println(service.isInStock(1, 5));
+        Scene scene = new Scene(mainView.getRoot(), 1100, 700);
 
-        Receipt receipt = service.buyProduct(1, 3);
-        if (receipt != null) {
-            receipt.printReceipt();
+        if (getClass().getResource("/styles.css") != null) {
+            scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
         }
+
+        stage.setTitle("Pet Shop Food Management System");
+        stage.setScene(scene);
+        stage.setMinWidth(950);
+        stage.setMinHeight(650);
+        stage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 }

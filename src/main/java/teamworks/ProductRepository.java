@@ -6,12 +6,10 @@ import java.util.List;
 public class ProductRepository {
     private List<Product> products = new ArrayList<>();
 
-    // CREATE
     public void addProduct(Product product) {
         products.add(product);
     }
 
-    // READ
     public Product getById(int id) {
         return products.stream()
                 .filter(p -> p.getId() == id)
@@ -23,7 +21,6 @@ public class ProductRepository {
         return products;
     }
 
-    // UPDATE
     public void updateProduct(int id, int newQuantity) {
         Product product = getById(id);
         if (product != null) {
@@ -31,7 +28,6 @@ public class ProductRepository {
         }
     }
 
-    // DELETE
     public void deleteProduct(int id) {
         products.removeIf(p -> p.getId() == id);
     }

@@ -24,7 +24,6 @@ public class ShopService {
         Product p = repository.getById(productId);
 
         if (p == null || p.getQuantity() < quantity) {
-            System.out.println("Not enough stock!");
             return null;
         }
 
