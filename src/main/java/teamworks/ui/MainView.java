@@ -7,79 +7,108 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.Separator;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-import teamworks.Product;
-import teamworks.ProductRepository;
-import teamworks.Receipt;
-import teamworks.ShopService;
+import teamworks.model.Category;
+import teamworks.model.Product;
+import teamworks.model.Receipt;
+import teamworks.service.ShopService;
 
+import java.util.List;
 import java.util.Optional;
 
 public class MainView {
+    private static final String ALL_CATEGORIES = "All Categories";
 
     private final BorderPane root;
-
-    private final ProductRepository repository;
     private final ShopService shopService;
 
     private final TableView<Product> productTable;
-    private final TextField searchField;
+    private final TableView<Category> categoryTable;
+    private final ListView<String> historyList;
+
+    private final TextField productNameFilterField;
+    private final TextField productIdSearchField;
+    private final ComboBox<String> productCategoryFilterBox;
+    private final ComboBox<String> productSortBox;
     private final Label infoLabel;
     private final Label totalProductsLabel;
     private final Label totalStockLabel;
+    private final Label totalCategoriesLabel;
 
     public MainView() {
-        this.repository = new ProductRepository();
-        this.shopService = new ShopService(repository);
-
+        this.shopService = new ShopService();
         this.root = new BorderPane();
         this.productTable = new TableView<>();
-        this.searchField = new TextField();
+        this.categoryTable = new TableView<>();
+        this.historyList = new ListView<>();
+        this.productNameFilterField = new TextField();
+        this.productIdSearchField = new TextField();
+        this.productCategoryFilterBox = new ComboBox<>();
+        this.productSortBox = new ComboBox<>();
         this.infoLabel = new Label("System ready");
         this.totalProductsLabel = new Label();
         this.totalStockLabel = new Label();
+        this.totalCategoriesLabel = new Label();
 
-        seedDemoData();
-        buildUI();
-        refreshTable();
-        updateStats();
+        buildUi();
+        refreshAllViews();
     }
 
     public Parent getRoot() {
         return root;
     }
 
-    private void buildUI() {
+    private void buildUi() {
         root.getStyleClass().add("app-root");
 
-        VBox topSection = new VBox(18, createHeader(), createToolbar(), createStatsBar());
-        topSection.setPadding(new Insets(20, 20, 10, 20));
+        VBox topSection = new VBox(18, createHeader(), createStatsBar());
+        topSection.setPadding(new Insets(20, 20, 12, 20));
 
-        StackPane centerWrapper = new StackPane(createTableSection());
-        centerWrapper.setPadding(new Insets(0, 20, 0, 20));
+        HBox centerSection = new HBox(18, createMainTabs(), createHistoryPanel());
+        centerSection.setPadding(new Insets(0, 20, 0, 20));
+        HBox.setHgrow(centerSection.getChildren().get(0), Priority.ALWAYS);
 
-        HBox bottomBar = createBottomBar();
-        bottomBar.setPadding(new Insets(10, 20, 20, 20));
+        HBox bottomBar = new HBox(infoLabel);
+        bottomBar.setAlignment(Pos.CENTER_LEFT);
+        bottomBar.getStyleClass().add("bottom-bar");
+        bottomBar.setPadding(new Insets(12, 20, 20, 20));
+        infoLabel.getStyleClass().add("info-label");
 
         root.setTop(topSection);
-        root.setCenter(centerWrapper);
+        root.setCenter(centerSection);
         root.setBottom(bottomBar);
     }
 
     private Node createHeader() {
-        Label title = new Label("Pet Shop Food Management System");
+        Label title = new Label("Pet Shop Inventory Manager");
         title.setFont(Font.font(28));
         title.getStyleClass().add("title-label");
 
-        Label subtitle = new Label("Manage pet food stock, prices, purchases, and sales receipts");
+        Label subtitle = new Label("Persistent CRUD for categories and products with custom algorithms");
         subtitle.getStyleClass().add("subtitle-label");
 
         VBox textBox = new VBox(6, title, subtitle);
-        textBox.setAlignment(Pos.CENTER_LEFT);
 
-        Label badge = new Label("SHOP ASSISTANT PANEL");
+        Label badge = new Label("COURSE PROJECT");
         badge.getStyleClass().add("badge-label");
 
         Region spacer = new Region();
@@ -88,67 +117,15 @@ public class MainView {
         HBox header = new HBox(textBox, spacer, badge);
         header.setAlignment(Pos.CENTER_LEFT);
         header.getStyleClass().add("header-box");
-
         return header;
     }
 
-    private Node createToolbar() {
-        searchField.setPromptText("Search by product name...");
-        searchField.setPrefWidth(260);
-        searchField.getStyleClass().add("search-field");
-
-        Button searchButton = new Button("Search");
-        Button showAllButton = new Button("Show All");
-        Button addButton = new Button("Add");
-        Button editButton = new Button("Edit");
-        Button deleteButton = new Button("Delete");
-        Button buyButton = new Button("Buy");
-        Button checkPriceButton = new Button("Check Price");
-        Button checkStockButton = new Button("Check Stock");
-
-        searchButton.getStyleClass().addAll("action-button", "primary-button");
-        showAllButton.getStyleClass().addAll("action-button", "neutral-button");
-        addButton.getStyleClass().addAll("action-button", "success-button");
-        editButton.getStyleClass().addAll("action-button", "neutral-button");
-        deleteButton.getStyleClass().addAll("action-button", "danger-button");
-        buyButton.getStyleClass().addAll("action-button", "buy-button");
-        checkPriceButton.getStyleClass().addAll("action-button", "neutral-button");
-        checkStockButton.getStyleClass().addAll("action-button", "neutral-button");
-
-        searchButton.setOnAction(e -> searchProducts());
-        showAllButton.setOnAction(e -> refreshTable());
-        addButton.setOnAction(e -> addProduct());
-        editButton.setOnAction(e -> editSelectedProduct());
-        deleteButton.setOnAction(e -> deleteSelectedProduct());
-        buyButton.setOnAction(e -> buySelectedProduct());
-        checkPriceButton.setOnAction(e -> showSelectedPrice());
-        checkStockButton.setOnAction(e -> showSelectedStock());
-
-        HBox toolbar = new HBox(
-                10,
-                searchField,
-                searchButton,
-                showAllButton,
-                new Separator(),
-                addButton,
-                editButton,
-                deleteButton,
-                new Separator(),
-                checkPriceButton,
-                checkStockButton,
-                buyButton
-        );
-        toolbar.setAlignment(Pos.CENTER_LEFT);
-        toolbar.getStyleClass().add("toolbar-box");
-
-        return toolbar;
-    }
-
     private Node createStatsBar() {
-        VBox productsCard = createStatCard("Number of Products", totalProductsLabel);
+        VBox productsCard = createStatCard("Products", totalProductsLabel);
+        VBox categoriesCard = createStatCard("Categories", totalCategoriesLabel);
         VBox stockCard = createStatCard("Units in Stock", totalStockLabel);
 
-        HBox stats = new HBox(16, productsCard, stockCard);
+        HBox stats = new HBox(16, productsCard, categoriesCard, stockCard);
         stats.setAlignment(Pos.CENTER_LEFT);
         return stats;
     }
@@ -160,191 +137,360 @@ public class MainView {
         valueLabel.getStyleClass().add("stat-value");
 
         VBox box = new VBox(8, titleLabel, valueLabel);
-        box.setMinWidth(240);
-        box.setPadding(new Insets(18));
         box.getStyleClass().add("stat-card");
-        return box;
-    }
-
-    private Node createTableSection() {
-        TableColumn<Product, Number> idCol = new TableColumn<>("ID");
-        idCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getId()));
-        idCol.setPrefWidth(90);
-
-        TableColumn<Product, String> nameCol = new TableColumn<>("Product Name");
-        nameCol.setCellValueFactory(data -> new ReadOnlyStringWrapper(data.getValue().getName()));
-        nameCol.setPrefWidth(340);
-
-        TableColumn<Product, Number> priceCol = new TableColumn<>("Price");
-        priceCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getPrice()));
-        priceCol.setPrefWidth(150);
-
-        TableColumn<Product, Number> quantityCol = new TableColumn<>("Stock");
-        quantityCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getQuantity()));
-        quantityCol.setPrefWidth(130);
-
-        productTable.getColumns().setAll(idCol, nameCol, priceCol, quantityCol);
-        productTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
-        productTable.setPlaceholder(new Label("No products available"));
-        productTable.getStyleClass().add("product-table");
-
-        VBox box = new VBox(productTable);
         box.setPadding(new Insets(18));
-        box.getStyleClass().add("table-wrapper");
-        VBox.setVgrow(productTable, Priority.ALWAYS);
-
+        box.setMinWidth(190);
         return box;
     }
 
-    private HBox createBottomBar() {
-        infoLabel.getStyleClass().add("info-label");
+    private Node createMainTabs() {
+        TabPane tabPane = new TabPane();
+        tabPane.getStyleClass().add("content-tabs");
 
-        HBox bottom = new HBox(infoLabel);
-        bottom.setAlignment(Pos.CENTER_LEFT);
-        bottom.getStyleClass().add("bottom-bar");
-        return bottom;
+        Tab productsTab = new Tab("Products");
+        productsTab.setClosable(false);
+        productsTab.setContent(createProductsTab());
+
+        Tab categoriesTab = new Tab("Categories");
+        categoriesTab.setClosable(false);
+        categoriesTab.setContent(createCategoriesTab());
+
+        tabPane.getTabs().addAll(productsTab, categoriesTab);
+
+        StackPane wrapper = new StackPane(tabPane);
+        wrapper.getStyleClass().add("content-wrapper");
+        HBox.setHgrow(wrapper, Priority.ALWAYS);
+        return wrapper;
     }
 
-    private void seedDemoData() {
-        if (repository.getAll().isEmpty()) {
-            repository.addProduct(new Product(1, "Cat Dry Food Premium", 320.0, 15));
-            repository.addProduct(new Product(2, "Dog Wet Food Chicken", 95.0, 25));
-            repository.addProduct(new Product(3, "Bird Seeds Mix", 140.0, 18));
-            repository.addProduct(new Product(4, "Rabbit Pellets Natural", 210.0, 12));
-        }
+    private Node createProductsTab() {
+        configureProductTable();
+
+        productNameFilterField.setPromptText("Filter by product name");
+        productNameFilterField.setPrefWidth(180);
+
+        productCategoryFilterBox.setPrefWidth(180);
+        productCategoryFilterBox.setOnAction(event -> refreshProductTable());
+
+        productSortBox.setItems(FXCollections.observableArrayList("ID", "Name", "Price", "Quantity"));
+        productSortBox.setValue("ID");
+        productSortBox.setOnAction(event -> {
+            refreshProductTable();
+            infoLabel.setText("Products sorted with merge sort.");
+        });
+
+        productIdSearchField.setPromptText("Binary search by product ID");
+        productIdSearchField.setPrefWidth(190);
+
+        Button filterButton = createActionButton("Apply Filter", "primary-button");
+        filterButton.setOnAction(event -> refreshProductTable());
+
+        Button showAllButton = createActionButton("Show All", "neutral-button");
+        showAllButton.setOnAction(event -> resetProductFilters());
+
+        Button binarySearchButton = createActionButton("Binary Search", "neutral-button");
+        binarySearchButton.setOnAction(event -> runBinarySearch());
+
+        Button addButton = createActionButton("Add", "success-button");
+        addButton.setOnAction(event -> addProduct());
+
+        Button editButton = createActionButton("Edit", "neutral-button");
+        editButton.setOnAction(event -> editSelectedProduct());
+
+        Button deleteButton = createActionButton("Delete", "danger-button");
+        deleteButton.setOnAction(event -> deleteSelectedProduct());
+
+        Button buyButton = createActionButton("Buy", "buy-button");
+        buyButton.setOnAction(event -> buySelectedProduct());
+
+        HBox filters = new HBox(
+                10,
+                productNameFilterField,
+                productCategoryFilterBox,
+                productSortBox,
+                filterButton,
+                showAllButton,
+                new Separator(),
+                productIdSearchField,
+                binarySearchButton
+        );
+        filters.setAlignment(Pos.CENTER_LEFT);
+        filters.getStyleClass().add("toolbar-box");
+
+        HBox actions = new HBox(10, addButton, editButton, deleteButton, buyButton);
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox content = new VBox(14, filters, actions, productTable);
+        content.setPadding(new Insets(18));
+        content.getStyleClass().add("table-wrapper");
+        VBox.setVgrow(productTable, Priority.ALWAYS);
+        return content;
     }
 
-    private void refreshTable() {
-        productTable.setItems(FXCollections.observableArrayList(repository.getAll()));
+    private Node createCategoriesTab() {
+        configureCategoryTable();
+
+        Button addButton = createActionButton("Add Category", "success-button");
+        addButton.setOnAction(event -> addCategory());
+
+        Button editButton = createActionButton("Edit Category", "neutral-button");
+        editButton.setOnAction(event -> editSelectedCategory());
+
+        Button deleteButton = createActionButton("Delete Category", "danger-button");
+        deleteButton.setOnAction(event -> deleteSelectedCategory());
+
+        HBox actions = new HBox(10, addButton, editButton, deleteButton);
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox content = new VBox(14, actions, categoryTable);
+        content.setPadding(new Insets(18));
+        content.getStyleClass().add("table-wrapper");
+        VBox.setVgrow(categoryTable, Priority.ALWAYS);
+        return content;
+    }
+
+    private Node createHistoryPanel() {
+        Label title = new Label("Recent Actions");
+        title.getStyleClass().add("panel-title");
+
+        Label hint = new Label("Stored in a custom stack implementation.");
+        hint.getStyleClass().add("panel-subtitle");
+
+        historyList.setPlaceholder(new Label("No actions yet"));
+        historyList.getStyleClass().add("history-list");
+
+        VBox panel = new VBox(10, title, hint, historyList);
+        panel.setPadding(new Insets(18));
+        panel.setPrefWidth(280);
+        panel.getStyleClass().add("side-panel");
+        VBox.setVgrow(historyList, Priority.ALWAYS);
+        return panel;
+    }
+
+    private void configureProductTable() {
+        TableColumn<Product, Number> idColumn = new TableColumn<>("ID");
+        idColumn.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getId()));
+        idColumn.setPrefWidth(70);
+
+        TableColumn<Product, String> nameColumn = new TableColumn<>("Name");
+        nameColumn.setCellValueFactory(data -> new ReadOnlyStringWrapper(data.getValue().getName()));
+        nameColumn.setPrefWidth(210);
+
+        TableColumn<Product, String> categoryColumn = new TableColumn<>("Category");
+        categoryColumn.setCellValueFactory(data ->
+                new ReadOnlyStringWrapper(shopService.getCategoryName(data.getValue().getCategoryId())));
+        categoryColumn.setPrefWidth(150);
+
+        TableColumn<Product, Number> priceColumn = new TableColumn<>("Price");
+        priceColumn.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getPrice()));
+        priceColumn.setPrefWidth(100);
+
+        TableColumn<Product, Number> quantityColumn = new TableColumn<>("Stock");
+        quantityColumn.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getQuantity()));
+        quantityColumn.setPrefWidth(90);
+
+        productTable.getColumns().setAll(idColumn, nameColumn, categoryColumn, priceColumn, quantityColumn);
+        productTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        productTable.setPlaceholder(new Label("No products found"));
+        productTable.getStyleClass().add("data-table");
+    }
+
+    private void configureCategoryTable() {
+        TableColumn<Category, Number> idColumn = new TableColumn<>("ID");
+        idColumn.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getId()));
+        idColumn.setPrefWidth(70);
+
+        TableColumn<Category, String> nameColumn = new TableColumn<>("Name");
+        nameColumn.setCellValueFactory(data -> new ReadOnlyStringWrapper(data.getValue().getName()));
+        nameColumn.setPrefWidth(170);
+
+        TableColumn<Category, String> descriptionColumn = new TableColumn<>("Description");
+        descriptionColumn.setCellValueFactory(data -> new ReadOnlyStringWrapper(data.getValue().getDescription()));
+        descriptionColumn.setPrefWidth(300);
+
+        TableColumn<Category, Number> countColumn = new TableColumn<>("Products");
+        countColumn.setCellValueFactory(data ->
+                new ReadOnlyObjectWrapper<>(shopService.countProductsInCategory(data.getValue().getId())));
+        countColumn.setPrefWidth(90);
+
+        categoryTable.getColumns().setAll(idColumn, nameColumn, descriptionColumn, countColumn);
+        categoryTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        categoryTable.setPlaceholder(new Label("No categories found"));
+        categoryTable.getStyleClass().add("data-table");
+    }
+
+    private Button createActionButton(String text, String styleClass) {
+        Button button = new Button(text);
+        button.getStyleClass().addAll("action-button", styleClass);
+        return button;
+    }
+
+    private void refreshAllViews() {
+        updateCategoryFilterOptions();
+        refreshProductTable();
+        refreshCategoryTable();
+        refreshHistory();
         updateStats();
-        infoLabel.setText("Product list updated successfully");
+    }
+
+    private void refreshProductTable() {
+        List<Product> products = shopService.filterProducts(
+                productNameFilterField.getText(),
+                resolveSelectedCategoryId(),
+                getSelectedSortOption()
+        );
+        productTable.setItems(FXCollections.observableArrayList(products));
+    }
+
+    private void refreshCategoryTable() {
+        categoryTable.setItems(FXCollections.observableArrayList(shopService.getCategories()));
+    }
+
+    private void refreshHistory() {
+        historyList.setItems(FXCollections.observableArrayList(shopService.getRecentActions(20)));
     }
 
     private void updateStats() {
-        int totalProducts = repository.getAll().size();
-        int totalStock = repository.getAll()
-                .stream()
-                .mapToInt(Product::getQuantity)
-                .sum();
-
-        totalProductsLabel.setText(String.valueOf(totalProducts));
-        totalStockLabel.setText(String.valueOf(totalStock));
+        totalProductsLabel.setText(String.valueOf(shopService.getTotalProducts()));
+        totalCategoriesLabel.setText(String.valueOf(shopService.getTotalCategories()));
+        totalStockLabel.setText(String.valueOf(shopService.getTotalStock()));
     }
 
-    private void searchProducts() {
-        String keyword = searchField.getText() == null ? "" : searchField.getText().trim().toLowerCase();
-
-        if (keyword.isEmpty()) {
-            refreshTable();
-            return;
+    private void updateCategoryFilterOptions() {
+        String previousSelection = productCategoryFilterBox.getValue();
+        productCategoryFilterBox.getItems().clear();
+        productCategoryFilterBox.getItems().add(ALL_CATEGORIES);
+        for (Category category : shopService.getCategories()) {
+            productCategoryFilterBox.getItems().add(category.getName());
         }
 
-        var filtered = repository.getAll().stream()
-                .filter(p -> p.getName().toLowerCase().contains(keyword))
-                .toList();
+        if (previousSelection != null && productCategoryFilterBox.getItems().contains(previousSelection)) {
+            productCategoryFilterBox.setValue(previousSelection);
+        } else {
+            productCategoryFilterBox.setValue(ALL_CATEGORIES);
+        }
+    }
 
-        productTable.setItems(FXCollections.observableArrayList(filtered));
-        infoLabel.setText("Search completed");
+    private Integer resolveSelectedCategoryId() {
+        String selectedCategory = productCategoryFilterBox.getValue();
+        if (selectedCategory == null || ALL_CATEGORIES.equals(selectedCategory)) {
+            return null;
+        }
+
+        for (Category category : shopService.getCategories()) {
+            if (category.getName().equals(selectedCategory)) {
+                return category.getId();
+            }
+        }
+        return null;
+    }
+
+    private ShopService.ProductSortOption getSelectedSortOption() {
+        String selectedSort = productSortBox.getValue();
+        if ("Name".equals(selectedSort)) {
+            return ShopService.ProductSortOption.NAME;
+        }
+        if ("Price".equals(selectedSort)) {
+            return ShopService.ProductSortOption.PRICE;
+        }
+        if ("Quantity".equals(selectedSort)) {
+            return ShopService.ProductSortOption.QUANTITY;
+        }
+        return ShopService.ProductSortOption.ID;
+    }
+
+    private void resetProductFilters() {
+        productNameFilterField.clear();
+        productIdSearchField.clear();
+        productCategoryFilterBox.setValue(ALL_CATEGORIES);
+        productSortBox.setValue("ID");
+        refreshProductTable();
+        infoLabel.setText("Product table reset.");
     }
 
     private void addProduct() {
-        ProductDialog dialog = new ProductDialog(null);
-        Optional<Product> result = dialog.showAndWait();
+        List<Category> categories = shopService.getCategories();
+        if (categories.isEmpty()) {
+            showWarning("No categories", "Create a category before adding products.");
+            return;
+        }
 
-        result.ifPresent(product -> {
-            repository.addProduct(product);
-            refreshTable();
-            infoLabel.setText("Product added: " + product.getName());
+        ProductDialog dialog = new ProductDialog(null, categories);
+        Optional<ProductDialog.ProductInput> result = dialog.showAndWait();
+
+        result.ifPresent(input -> {
+            try {
+                shopService.createProduct(
+                        input.getName(),
+                        input.getPrice(),
+                        input.getQuantity(),
+                        input.getCategoryId()
+                );
+                refreshAllViews();
+                infoLabel.setText("Product added successfully.");
+            } catch (RuntimeException exception) {
+                showError("Add product failed", exception.getMessage());
+            }
         });
     }
 
     private void editSelectedProduct() {
-        Product selected = productTable.getSelectionModel().getSelectedItem();
-
-        if (selected == null) {
-            showWarning("No selection", "Please select a product to edit.");
+        Product selectedProduct = productTable.getSelectionModel().getSelectedItem();
+        if (selectedProduct == null) {
+            showWarning("No selection", "Select a product to edit.");
             return;
         }
 
-        ProductDialog dialog = new ProductDialog(selected);
-        Optional<Product> result = dialog.showAndWait();
+        ProductDialog dialog = new ProductDialog(selectedProduct, shopService.getCategories());
+        Optional<ProductDialog.ProductInput> result = dialog.showAndWait();
 
-        result.ifPresent(updated -> {
-            selected.setName(updated.getName());
-            selected.setPrice(updated.getPrice());
-            selected.setQuantity(updated.getQuantity());
-
-            refreshTable();
-            infoLabel.setText("Product updated: " + selected.getName());
+        result.ifPresent(input -> {
+            try {
+                shopService.updateProduct(
+                        selectedProduct.getId(),
+                        input.getName(),
+                        input.getPrice(),
+                        input.getQuantity(),
+                        input.getCategoryId()
+                );
+                refreshAllViews();
+                infoLabel.setText("Product updated successfully.");
+            } catch (RuntimeException exception) {
+                showError("Update product failed", exception.getMessage());
+            }
         });
     }
 
     private void deleteSelectedProduct() {
-        Product selected = productTable.getSelectionModel().getSelectedItem();
-
-        if (selected == null) {
-            showWarning("No selection", "Please select a product to delete.");
+        Product selectedProduct = productTable.getSelectionModel().getSelectedItem();
+        if (selectedProduct == null) {
+            showWarning("No selection", "Select a product to delete.");
             return;
         }
 
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Delete Product");
-        alert.setHeaderText("Delete selected product?");
-        alert.setContentText(selected.getName());
-
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            repository.deleteProduct(selected.getId());
-            refreshTable();
-            infoLabel.setText("Product deleted successfully");
-        }
-    }
-
-    private void showSelectedPrice() {
-        Product selected = productTable.getSelectionModel().getSelectedItem();
-
-        if (selected == null) {
-            showWarning("No selection", "Please select a product.");
+        if (!confirm("Delete product?", selectedProduct.getName())) {
             return;
         }
 
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Product Price");
-        alert.setHeaderText(selected.getName());
-        alert.setContentText("Price: " + selected.getPrice() + " UAH");
-        alert.showAndWait();
-    }
-
-    private void showSelectedStock() {
-        Product selected = productTable.getSelectionModel().getSelectedItem();
-
-        if (selected == null) {
-            showWarning("No selection", "Please select a product.");
-            return;
+        try {
+            shopService.deleteProduct(selectedProduct.getId());
+            refreshAllViews();
+            infoLabel.setText("Product deleted successfully.");
+        } catch (RuntimeException exception) {
+            showError("Delete product failed", exception.getMessage());
         }
-
-        boolean inStock = shopService.isInStock(selected.getId(), 1);
-
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Stock Status");
-        alert.setHeaderText(selected.getName());
-        alert.setContentText(
-                "Quantity in stock: " + selected.getQuantity() + "\nAvailable: " + (inStock ? "Yes" : "No")
-        );
-        alert.showAndWait();
     }
 
     private void buySelectedProduct() {
-        Product selected = productTable.getSelectionModel().getSelectedItem();
-
-        if (selected == null) {
-            showWarning("No selection", "Please select a product to buy.");
+        Product selectedProduct = productTable.getSelectionModel().getSelectedItem();
+        if (selectedProduct == null) {
+            showWarning("No selection", "Select a product to sell.");
             return;
         }
 
         TextInputDialog dialog = new TextInputDialog("1");
-        dialog.setTitle("Buy Product");
-        dialog.setHeaderText("Enter quantity to buy");
+        dialog.setTitle("Sell Product");
+        dialog.setHeaderText("Enter quantity to sell");
         dialog.setContentText("Quantity:");
 
         Optional<String> result = dialog.showAndWait();
@@ -353,30 +499,115 @@ public class MainView {
         }
 
         try {
-            int quantity = Integer.parseInt(result.get());
-
-            if (quantity <= 0) {
-                showWarning("Invalid quantity", "Quantity must be greater than 0.");
-                return;
-            }
-
-            Receipt receipt = shopService.buyProduct(selected.getId(), quantity);
-
-            if (receipt == null) {
-                showWarning("Purchase failed", "Not enough stock for this purchase.");
-                return;
-            }
-
-            refreshTable();
+            int quantity = Integer.parseInt(result.get().trim());
+            Receipt receipt = shopService.buyProduct(selectedProduct.getId(), quantity);
+            refreshAllViews();
             ReceiptWindow.show(receipt);
-            infoLabel.setText("Purchase completed successfully");
-        } catch (NumberFormatException e) {
-            showWarning("Invalid input", "Please enter a valid integer quantity.");
+            infoLabel.setText("Purchase completed successfully.");
+        } catch (NumberFormatException exception) {
+            showWarning("Invalid input", "Enter a valid whole number.");
+        } catch (RuntimeException exception) {
+            showError("Purchase failed", exception.getMessage());
         }
+    }
+
+    private void runBinarySearch() {
+        try {
+            int productId = Integer.parseInt(productIdSearchField.getText().trim());
+            Product product = shopService.findProductByIdBinarySearch(productId);
+
+            if (product == null) {
+                showWarning("Not found", "No product with this ID was found.");
+                return;
+            }
+
+            productNameFilterField.clear();
+            productCategoryFilterBox.setValue(ALL_CATEGORIES);
+            productSortBox.setValue("ID");
+            refreshProductTable();
+            productTable.getSelectionModel().select(product);
+            productTable.scrollTo(product);
+            infoLabel.setText("Binary search found product: " + product.getName());
+        } catch (NumberFormatException exception) {
+            showWarning("Invalid input", "Enter a valid numeric product ID.");
+        }
+    }
+
+    private void addCategory() {
+        CategoryDialog dialog = new CategoryDialog(null);
+        Optional<CategoryDialog.CategoryInput> result = dialog.showAndWait();
+
+        result.ifPresent(input -> {
+            try {
+                shopService.createCategory(input.getName(), input.getDescription());
+                refreshAllViews();
+                infoLabel.setText("Category added successfully.");
+            } catch (RuntimeException exception) {
+                showError("Add category failed", exception.getMessage());
+            }
+        });
+    }
+
+    private void editSelectedCategory() {
+        Category selectedCategory = categoryTable.getSelectionModel().getSelectedItem();
+        if (selectedCategory == null) {
+            showWarning("No selection", "Select a category to edit.");
+            return;
+        }
+
+        CategoryDialog dialog = new CategoryDialog(selectedCategory);
+        Optional<CategoryDialog.CategoryInput> result = dialog.showAndWait();
+
+        result.ifPresent(input -> {
+            try {
+                shopService.updateCategory(selectedCategory.getId(), input.getName(), input.getDescription());
+                refreshAllViews();
+                infoLabel.setText("Category updated successfully.");
+            } catch (RuntimeException exception) {
+                showError("Update category failed", exception.getMessage());
+            }
+        });
+    }
+
+    private void deleteSelectedCategory() {
+        Category selectedCategory = categoryTable.getSelectionModel().getSelectedItem();
+        if (selectedCategory == null) {
+            showWarning("No selection", "Select a category to delete.");
+            return;
+        }
+
+        if (!confirm("Delete category?", selectedCategory.getName())) {
+            return;
+        }
+
+        try {
+            shopService.deleteCategory(selectedCategory.getId());
+            refreshAllViews();
+            infoLabel.setText("Category deleted successfully.");
+        } catch (RuntimeException exception) {
+            showError("Delete category failed", exception.getMessage());
+        }
+    }
+
+    private boolean confirm(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == ButtonType.OK;
     }
 
     private void showWarning(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);

@@ -1,0 +1,226 @@
+.root {
+    -fx-font-family: "Segoe UI";
+    -fx-background-color: #eef2f7;
+}
+
+.app-root {
+    -fx-background-color: linear-gradient(to bottom, #eef2f7, #e2e8f0);
+}
+
+.header-box {
+    -fx-background-color: linear-gradient(to right, #0f172a, #1e293b);
+    -fx-background-radius: 20;
+    -fx-padding: 22 24 22 24;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.18), 20, 0.2, 0, 6);
+}
+
+.title-label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.subtitle-label {
+    -fx-text-fill: #cbd5e1;
+    -fx-font-size: 13px;
+}
+
+.badge-label {
+    -fx-text-fill: white;
+    -fx-background-color: #2563eb;
+    -fx-background-radius: 999;
+    -fx-padding: 8 16 8 16;
+    -fx-font-weight: bold;
+}
+
+.stat-card {
+    -fx-background-color: white;
+    -fx-background-radius: 18;
+    -fx-border-color: #dbe3ee;
+    -fx-border-radius: 18;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.08), 16, 0.16, 0, 4);
+}
+
+.stat-title {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 13px;
+}
+
+.stat-value {
+    -fx-text-fill: #0f172a;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+.content-wrapper,
+.side-panel,
+.table-wrapper {
+    -fx-background-color: white;
+    -fx-background-radius: 20;
+    -fx-border-color: #dbe3ee;
+    -fx-border-radius: 20;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.08), 18, 0.16, 0, 4);
+}
+
+.content-wrapper {
+    -fx-padding: 6;
+}
+
+.content-tabs {
+    -fx-background-color: transparent;
+}
+
+.panel-title {
+    -fx-text-fill: #0f172a;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.panel-subtitle {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 12px;
+}
+
+.toolbar-box {
+    -fx-alignment: center-left;
+}
+
+.action-button {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 11 16 11 16;
+    -fx-background-radius: 12;
+    -fx-cursor: hand;
+}
+
+.primary-button {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: white;
+}
+
+.primary-button:hover {
+    -fx-background-color: #1d4ed8;
+}
+
+.neutral-button {
+    -fx-background-color: #e2e8f0;
+    -fx-text-fill: #0f172a;
+}
+
+.neutral-button:hover {
+    -fx-background-color: #cbd5e1;
+}
+
+.success-button {
+    -fx-background-color: #16a34a;
+    -fx-text-fill: white;
+}
+
+.success-button:hover {
+    -fx-background-color: #15803d;
+}
+
+.danger-button {
+    -fx-background-color: #dc2626;
+    -fx-text-fill: white;
+}
+
+.danger-button:hover {
+    -fx-background-color: #b91c1c;
+}
+
+.buy-button {
+    -fx-background-color: #7c3aed;
+    -fx-text-fill: white;
+}
+
+.buy-button:hover {
+    -fx-background-color: #6d28d9;
+}
+
+.text-field,
+.combo-box {
+    -fx-background-color: #f8fafc;
+    -fx-background-radius: 12;
+    -fx-border-color: #d6deea;
+    -fx-border-radius: 12;
+    -fx-padding: 10 12 10 12;
+}
+
+.text-area {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #d6deea;
+}
+
+.data-table,
+.history-list {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 12 12 0 0;
+}
+
+.table-view .column-header,
+.table-view .filler {
+    -fx-background-color: transparent;
+    -fx-size: 40px;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #334155;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.table-row-cell {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #eef2f7 transparent;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #dbeafe;
+}
+
+.table-cell,
+.list-cell {
+    -fx-text-fill: #1e293b;
+    -fx-font-size: 13px;
+}
+
+.history-list .list-cell {
+    -fx-background-color: #f8fafc;
+    -fx-background-radius: 10;
+    -fx-padding: 10 12 10 12;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 10;
+}
+
+.history-list .list-cell:filled:selected {
+    -fx-background-color: #dbeafe;
+}
+
+.bottom-bar {
+    -fx-background-color: rgba(255,255,255,0.75);
+    -fx-background-radius: 16;
+}
+
+.info-label {
+    -fx-text-fill: #334155;
+    -fx-font-size: 13px;
+}
+
+.receipt-root {
+    -fx-background-color: #f8fafc;
+}
+
+.receipt-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #0f172a;
+}
+
+.receipt-area {
+    -fx-font-family: "Consolas";
+}

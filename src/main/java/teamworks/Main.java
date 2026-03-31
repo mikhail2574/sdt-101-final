@@ -17,7 +17,7 @@ public class Main extends Application {
             scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
         }
 
-        stage.setTitle("Pet Shop Food Management System");
+        stage.setTitle("Pet Shop Inventory Manager");
         stage.setScene(scene);
         stage.setMinWidth(950);
         stage.setMinHeight(650);
