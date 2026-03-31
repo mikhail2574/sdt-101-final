@@ -1,43 +1,43 @@
 # Pet Shop Inventory Manager
 
-## Описание проекта
-`Pet Shop Inventory Manager` — настольное JavaFX-приложение для учёта ассортимента зоомагазина. Приложение позволяет работать с двумя связанными сущностями: категориями товаров и товарами. Одна категория может содержать много товаров, а каждый товар принадлежит одной категории.
+## Project Description
+`Pet Shop Inventory Manager` is a JavaFX desktop application for managing a pet shop inventory. The application works with two related domain entities: categories and products. One category can contain many products, and each product belongs to one category.
 
-Приложение поддерживает:
-- CRUD для категорий;
-- CRUD для товаров;
-- покупку товара с автоматическим уменьшением остатка и генерацией чека;
-- сохранение данных между сессиями в собственном текстовом формате;
-- сортировку товаров алгоритмом merge sort;
-- бинарный поиск товара по `ID`;
-- отображение истории действий, которая хранится в собственной структуре данных `Stack`.
+The application supports:
+- CRUD for categories;
+- CRUD for products;
+- product purchase with automatic stock reduction and receipt generation;
+- data persistence between sessions in a custom text format;
+- product sorting with the merge sort algorithm;
+- binary search by product `ID`;
+- action history display stored in a custom `Stack` data structure.
 
-## Основные функции
-- Добавление, редактирование и удаление категорий.
-- Добавление, редактирование и удаление товаров.
-- Фильтрация товаров по имени и категории.
-- Сортировка товаров по `ID`, названию, цене и количеству.
-- Бинарный поиск товара по идентификатору.
-- Продажа товара с проверкой остатка.
-- Просмотр последних действий пользователя.
+## Main Features
+- Add, edit, and delete categories.
+- Add, edit, and delete products.
+- Filter products by name and category.
+- Sort products by `ID`, name, price, and quantity.
+- Search for a product by identifier using binary search.
+- Sell a product with stock validation.
+- View the latest user actions.
 
-## Использованные принципы ООП
-- Инкапсуляция: поля доменных классов скрыты и доступны через методы.
-- Наследование: `Category` и `Product` наследуются от `NamedEntity`, а `NamedEntity` наследуется от `BaseEntity`.
-- Агрегация/композиция: `Receipt` содержит список `ReceiptItem`, `ShopService` агрегирует репозитории и историю действий.
-- Декомпозиция: проект разделён на пакеты `model`, `repository`, `persistence`, `service`, `algorithm`, `ui`.
+## OOP Principles Used
+- Encapsulation: domain class fields are hidden and accessed through methods.
+- Inheritance: `Category` and `Product` inherit from `NamedEntity`, and `NamedEntity` inherits from `BaseEntity`.
+- Aggregation/composition: `Receipt` contains a list of `ReceiptItem`, and `ShopService` aggregates repositories and action history.
+- Decomposition: the project is split into packages `model`, `repository`, `persistence`, `service`, `algorithm`, and `ui`.
 
-## Хранение данных в файлах
-Данные сохраняются в папке `data/`, которая создаётся автоматически при первом запуске:
+## File Storage
+Data is stored in the `data/` folder, which is created automatically on the first launch:
 - `data/categories.db`
 - `data/products.db`
 
-Используется собственный текстовый формат:
-- поля в записи разделяются символом `|`
-- специальные символы экранируются через `\`
-- перенос строки хранится как `\n`
+The project uses a custom text format:
+- fields in a record are separated by `|`
+- special characters are escaped with `\`
+- line breaks are stored as `\n`
 
-Примеры записей:
+Record examples:
 
 ```text
 1|Cats|Dry and wet food for cats
@@ -162,10 +162,10 @@ classDiagram
     ShopService ..> BinarySearch
 ```
 
-## Как критерии закрываются в проекте
-- Две связанные сущности: `Category` и `Product` c отношением one-to-many.
-- Полный CRUD: реализован для обеих сущностей в интерфейсе и сервисном слое.
-- File I/O: чтение и запись выполняются студентом через `CategoryFileStore` и `ProductFileStore`.
+## Criteria Coverage
+- Two related entities: `Category` and `Product` with a one-to-many relationship.
+- Full CRUD: implemented for both entities in the UI and service layer.
+- File I/O: reading and writing are implemented through `CategoryFileStore` and `ProductFileStore`.
 - Custom data structure: `ActionHistoryStack<T>`.
-- Sort: собственная реализация `MergeSort`.
-- Search: собственная реализация `BinarySearch`.
+- Sort: custom `MergeSort` implementation.
+- Search: custom `BinarySearch` implementation.
