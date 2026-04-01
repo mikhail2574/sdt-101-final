@@ -48,35 +48,38 @@ Record examples:
 ## UML Use Case Diagram
 ```mermaid
 flowchart LR
-    User([User])
+    Cashier([Cashier])
+    Owner([Store Owner])
 
-    UC1((Create Category))
-    UC2((View Categories))
-    UC3((Update Category))
-    UC4((Delete Category))
-    UC5((Create Product))
-    UC6((View Products))
-    UC7((Update Product))
-    UC8((Delete Product))
-    UC9((Sort Products))
-    UC10((Search Product by ID))
-    UC11((Buy Product))
-    UC12((View Receipt))
+    UC1((View Products))
+    UC2((Search Product by ID))
+    UC3((Sell Product))
+    UC4((View Receipt))
+    UC5((View Categories))
+    UC6((Create Category))
+    UC7((Update Category))
+    UC8((Delete Category))
+    UC9((Create Product))
+    UC10((Update Product))
+    UC11((Delete Product))
+    UC12((Sort and Filter Products))
     UC13((Save and Load Data))
 
-    User --> UC1
-    User --> UC2
-    User --> UC3
-    User --> UC4
-    User --> UC5
-    User --> UC6
-    User --> UC7
-    User --> UC8
-    User --> UC9
-    User --> UC10
-    User --> UC11
-    User --> UC12
-    User --> UC13
+    Cashier --> UC1
+    Cashier --> UC2
+    Cashier --> UC3
+    Cashier --> UC4
+
+    Owner --> UC1
+    Owner --> UC5
+    Owner --> UC6
+    Owner --> UC7
+    Owner --> UC8
+    Owner --> UC9
+    Owner --> UC10
+    Owner --> UC11
+    Owner --> UC12
+    Owner --> UC13
 ```
 
 ## UML Class Diagram
