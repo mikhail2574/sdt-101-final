@@ -172,6 +172,14 @@ public class ShopService {
         return productRepository.findByCategoryId(categoryId).size();
     }
 
+    public List<Product> getProductsByCategory(int categoryId) {
+        getCategoryById(categoryId);
+        return MergeSort.sort(
+                productRepository.findByCategoryId(categoryId),
+                Comparator.comparing(product -> product.getName().toLowerCase(Locale.ROOT))
+        );
+    }
+
     public List<String> getRecentActions(int limit) {
         List<String> actions = actionHistory.toList();
         if (actions.size() <= limit) {

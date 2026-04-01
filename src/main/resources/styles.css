@@ -53,7 +53,8 @@
 
 .content-wrapper,
 .side-panel,
-.table-wrapper {
+.table-wrapper,
+.related-panel {
     -fx-background-color: white;
     -fx-background-radius: 20;
     -fx-border-color: #dbe3ee;
@@ -78,6 +79,10 @@
 .panel-subtitle {
     -fx-text-fill: #64748b;
     -fx-font-size: 12px;
+}
+
+.related-panel {
+    -fx-padding: 16;
 }
 
 .toolbar-box {

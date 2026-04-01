@@ -44,6 +44,7 @@ public class MainView {
     private final TableView<Product> productTable;
     private final TableView<Category> categoryTable;
     private final ListView<String> historyList;
+    private final ListView<String> categoryProductsList;
 
     private final TextField productNameFilterField;
     private final TextField productIdSearchField;
@@ -60,6 +61,7 @@ public class MainView {
         this.productTable = new TableView<>();
         this.categoryTable = new TableView<>();
         this.historyList = new ListView<>();
+        this.categoryProductsList = new ListView<>();
         this.productNameFilterField = new TextField();
         this.productIdSearchField = new TextField();
         this.productCategoryFilterBox = new ComboBox<>();
@@ -229,6 +231,8 @@ public class MainView {
 
     private Node createCategoriesTab() {
         configureCategoryTable();
+        categoryTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->
+                refreshCategoryProductsList());
 
         Button addButton = createActionButton("Add Category", "success-button");
         addButton.setOnAction(event -> addCategory());
@@ -242,7 +246,21 @@ public class MainView {
         HBox actions = new HBox(10, addButton, editButton, deleteButton);
         actions.setAlignment(Pos.CENTER_LEFT);
 
-        VBox content = new VBox(14, actions, categoryTable);
+        Label relatedProductsTitle = new Label("Products in Selected Category");
+        relatedProductsTitle.getStyleClass().add("panel-title");
+
+        Label relatedProductsHint = new Label("Shows the one-to-many relation: one category has many products.");
+        relatedProductsHint.getStyleClass().add("panel-subtitle");
+
+        categoryProductsList.setPlaceholder(new Label("Select a category to view linked products"));
+        categoryProductsList.getStyleClass().add("history-list");
+        categoryProductsList.setPrefHeight(150);
+
+        VBox relatedProductsPanel = new VBox(10, relatedProductsTitle, relatedProductsHint, categoryProductsList);
+        relatedProductsPanel.getStyleClass().add("related-panel");
+        VBox.setVgrow(categoryProductsList, Priority.ALWAYS);
+
+        VBox content = new VBox(14, actions, categoryTable, relatedProductsPanel);
         content.setPadding(new Insets(18));
         content.getStyleClass().add("table-wrapper");
         VBox.setVgrow(categoryTable, Priority.ALWAYS);
@@ -343,11 +361,38 @@ public class MainView {
     }
 
     private void refreshCategoryTable() {
+        Category selectedCategory = categoryTable.getSelectionModel().getSelectedItem();
+        Integer selectedCategoryId = selectedCategory == null ? null : selectedCategory.getId();
+
         categoryTable.setItems(FXCollections.observableArrayList(shopService.getCategories()));
+
+        if (selectedCategoryId != null) {
+            for (Category category : categoryTable.getItems()) {
+                if (category.getId() == selectedCategoryId) {
+                    categoryTable.getSelectionModel().select(category);
+                    break;
+                }
+            }
+        }
+
+        refreshCategoryProductsList();
     }
 
     private void refreshHistory() {
         historyList.setItems(FXCollections.observableArrayList(shopService.getRecentActions(20)));
+    }
+
+    private void refreshCategoryProductsList() {
+        Category selectedCategory = categoryTable.getSelectionModel().getSelectedItem();
+        if (selectedCategory == null) {
+            categoryProductsList.setItems(FXCollections.observableArrayList());
+            return;
+        }
+
+        List<String> productLines = shopService.getProductsByCategory(selectedCategory.getId()).stream()
+                .map(product -> product.getName() + " (" + product.getQuantity() + " in stock)")
+                .toList();
+        categoryProductsList.setItems(FXCollections.observableArrayList(productLines));
     }
 
     private void updateStats() {

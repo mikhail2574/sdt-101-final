@@ -15,6 +15,7 @@ The application supports:
 ## Main Features
 - Add, edit, and delete categories.
 - Add, edit, and delete products.
+- View products linked to the selected category in the categories tab.
 - Filter products by name and category.
 - Sort products by `ID`, name, price, and quantity.
 - Search for a product by identifier using binary search.
@@ -49,19 +50,19 @@ Record examples:
 flowchart LR
     User([User])
 
-    UC1((Create category))
-    UC2((Read categories))
-    UC3((Update category))
-    UC4((Delete category))
-    UC5((Create product))
-    UC6((Read products))
-    UC7((Update product))
-    UC8((Delete product))
-    UC9((Sort products))
-    UC10((Binary search product))
-    UC11((Buy product))
-    UC12((View receipt))
-    UC13((Save and load data))
+    UC1((Create Category))
+    UC2((View Categories))
+    UC3((Update Category))
+    UC4((Delete Category))
+    UC5((Create Product))
+    UC6((View Products))
+    UC7((Update Product))
+    UC8((Delete Product))
+    UC9((Sort Products))
+    UC10((Search Product by ID))
+    UC11((Buy Product))
+    UC12((View Receipt))
+    UC13((Save and Load Data))
 
     User --> UC1
     User --> UC2
@@ -137,6 +138,7 @@ classDiagram
         +deleteProduct(int) void
         +buyProduct(int, int) Receipt
         +findProductByIdBinarySearch(int) Product
+        +getProductsByCategory(int) List~Product~
     }
 
     class CategoryRepository
@@ -151,8 +153,8 @@ classDiagram
     BaseEntity <|-- Receipt
     NamedEntity <|-- Category
     NamedEntity <|-- Product
-    Category "1" --> "many" Product : groups
-    Receipt "1" *-- "many" ReceiptItem
+    Category "1" --> "many" Product : contains
+    Receipt "1" *-- "many" ReceiptItem : contains
     ShopService --> CategoryRepository
     ShopService --> ProductRepository
     ShopService --> ActionHistoryStack~String~
