@@ -45,6 +45,9 @@ Record examples:
 2|Dog Wet Food Chicken|95.0|25|2
 ```
 
+## ER Diagram
+![ER Diagram](docs/er-diagram.svg)
+
 ## UML Use Case Diagram
 ```mermaid
 flowchart LR
